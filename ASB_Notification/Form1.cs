@@ -1,4 +1,6 @@
+using Azure.Messaging.ServiceBus;
 using Microsoft.Toolkit.Uwp.Notifications;
+using System.Text;
 
 namespace ASB_Notification
 {
@@ -11,7 +13,34 @@ namespace ASB_Notification
         public Form1()
         {
             InitializeComponent();
+            System.Timers.Timer tmr = new System.Timers.Timer();
+            tmr.Interval = Properties.Settings.Default.TimerInterval;
+            tmr.AutoReset = true;
+            tmr.Enabled = true;
+            tmr.Elapsed += Tmr_Elapsed;
+            tmr.Start();
 
+        }
+
+        private async void Tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+        {
+            if (!String.IsNullOrEmpty(Properties.Settings.Default.ASB_Connectionstring))
+            {
+                var messages = await GetMessages(Properties.Settings.Default.ASB_Connectionstring);
+                foreach (var message in messages)
+                {
+                    new ToastContentBuilder()
+                .AddArgument("action", "viewConversation")
+                .AddArgument("conversationId", conversationId)
+                .AddHeader(headerId, "Home Assistent send you a notification", "")
+                .AddText($"{message.EnqueueDateTime.ToString("dd-MMM-yyyy HH:mm")} {message.Subject}: {message.Message}")
+
+                .SetToastDuration(ToastDuration.Long)
+                .Show(); // Not seeing the Show() method? Make sure you have version 7.0, and if you're using .NET 6 (or later), then your TFM must be net6.0-windows10.0.17763.0 or greater
+
+                }
+
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -66,26 +95,38 @@ namespace ASB_Notification
             }
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
+        private async Task<List<NotificationMessage>> GetMessages(string connectionString)
         {
-            var messages = GetMessages();
+            var clientOptions = new ServiceBusClientOptions
+            {
+                TransportType = ServiceBusTransportType.AmqpWebSockets
+            };
+            var _client = new ServiceBusClient(connectionString, clientOptions);
+
+            var receiver = _client.CreateReceiver("notifications", new ServiceBusReceiverOptions
+            {
+                ReceiveMode = ServiceBusReceiveMode.PeekLock
+            });
+
+            var messages = await receiver.ReceiveMessagesAsync(4);
+            var NotificationMessages = new List<NotificationMessage>();
             foreach (var message in messages)
             {
-                new ToastContentBuilder()
-            .AddArgument("action", "viewConversation")
-            .AddArgument("conversationId", conversationId)
-            .AddHeader(headerId, "Home Assistent send you a notification", "")
-            .AddText(message)
-
-            .SetToastDuration(ToastDuration.Long)
-            .Show(); // Not seeing the Show() method? Make sure you have version 7.0, and if you're using .NET 6 (or later), then your TFM must be net6.0-windows10.0.17763.0 or greater
-
+                NotificationMessages.Add(ProcessMessage(message));
             }
+
+            return NotificationMessages;
         }
 
-        private List<string> GetMessages()
+        private NotificationMessage ProcessMessage(ServiceBusReceivedMessage message)
         {
-            return new List<string> { "aaa", "bbb" };
+            return new NotificationMessage()
+            {
+                Subject = message.Subject,
+                Message = Encoding.UTF8.GetString(message.Body),
+                EnqueueDateTime = message.EnqueuedTime.DateTime
+
+            };
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -93,6 +134,11 @@ namespace ASB_Notification
             ASBConnectionString.Text = Properties.Settings.Default.ASB_Connectionstring;
             cbDeleteMessage.Checked = Properties.Settings.Default.DeleteMessage;
             tbTimerInterval.Text = (Properties.Settings.Default.TimerInterval / 60000).ToString();
+        }
+
+        private void btnTestConnetion_Click(object sender, EventArgs e)
+        {
+            GetMessages(ASBConnectionString.Text);
         }
     }
 }

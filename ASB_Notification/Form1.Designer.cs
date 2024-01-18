@@ -35,7 +35,6 @@
             BtnSave = new Button();
             btnTestConnetion = new Button();
             cbDeleteMessage = new CheckBox();
-            timer1 = new System.Windows.Forms.Timer(components);
             label1 = new Label();
             tbTimerInterval = new TextBox();
             label2 = new Label();
@@ -73,6 +72,7 @@
             btnTestConnetion.TabIndex = 3;
             btnTestConnetion.Text = "Test Connection";
             btnTestConnetion.UseVisualStyleBackColor = true;
+            btnTestConnetion.Click += btnTestConnetion_Click;
             // 
             // cbDeleteMessage
             // 
@@ -84,12 +84,6 @@
             cbDeleteMessage.Text = "Delete Message";
             cbDeleteMessage.UseVisualStyleBackColor = true;
             cbDeleteMessage.CheckedChanged += checkBox1_CheckedChanged;
-            // 
-            // timer1
-            // 
-            timer1.Enabled = true;
-            timer1.Interval = 60000;
-            timer1.Tick += timer1_Tick;
             // 
             // label1
             // 
@@ -146,7 +140,6 @@
         private Button BtnSave;
         private Button btnTestConnetion;
         private CheckBox cbDeleteMessage;
-        private System.Windows.Forms.Timer timer1;
         private Label label1;
         private TextBox tbTimerInterval;
         private Label label2;
