@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             notifyIcon1 = new NotifyIcon(components);
             ASBConnectionString = new TextBox();
             BtnSave = new Button();
@@ -42,8 +43,9 @@
             // 
             // notifyIcon1
             // 
+            notifyIcon1.Icon = (Icon)resources.GetObject("notifyIcon1.Icon");
             notifyIcon1.Text = "notifyIcon1";
-            notifyIcon1.Visible = true;
+            notifyIcon1.MouseDoubleClick += notifyIcon1_MouseDoubleClick;
             // 
             // ASBConnectionString
             // 
@@ -82,6 +84,12 @@
             cbDeleteMessage.Text = "Delete Message";
             cbDeleteMessage.UseVisualStyleBackColor = true;
             cbDeleteMessage.CheckedChanged += checkBox1_CheckedChanged;
+            // 
+            // timer1
+            // 
+            timer1.Enabled = true;
+            timer1.Interval = 60000;
+            timer1.Tick += timer1_Tick;
             // 
             // label1
             // 
@@ -124,6 +132,8 @@
             Controls.Add(ASBConnectionString);
             Name = "Form1";
             Text = "Form1";
+            Paint += Form1_Paint;
+            Resize += Form1_Resize;
             ResumeLayout(false);
             PerformLayout();
         }
