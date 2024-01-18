@@ -113,9 +113,9 @@
             label2.AutoSize = true;
             label2.Location = new Point(48, 463);
             label2.Name = "label2";
-            label2.Size = new Size(118, 25);
+            label2.Size = new Size(205, 25);
             label2.TabIndex = 7;
-            label2.Text = "Timer interval";
+            label2.Text = "Timer interval in minutes";
             label2.Click += label2_Click;
             // 
             // Form1
@@ -132,6 +132,7 @@
             Controls.Add(ASBConnectionString);
             Name = "Form1";
             Text = "Form1";
+            Load += Form1_Load;
             Paint += Form1_Paint;
             Resize += Form1_Resize;
             ResumeLayout(false);

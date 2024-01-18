@@ -11,11 +11,14 @@ namespace ASB_Notification
         public Form1()
         {
             InitializeComponent();
+
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-
+            Properties.Settings.Default.ASB_Connectionstring = ASBConnectionString.Text;
+            Properties.Settings.Default.DeleteMessage = cbDeleteMessage.Checked;
+            Properties.Settings.Default.TimerInterval = int.Parse(tbTimerInterval.Text) * 60000;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -83,6 +86,13 @@ namespace ASB_Notification
         private List<string> GetMessages()
         {
             return new List<string> { "aaa", "bbb" };
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ASBConnectionString.Text = Properties.Settings.Default.ASB_Connectionstring;
+            cbDeleteMessage.Checked = Properties.Settings.Default.DeleteMessage;
+            tbTimerInterval.Text = (Properties.Settings.Default.TimerInterval / 60000).ToString();
         }
     }
 }
