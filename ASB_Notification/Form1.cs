@@ -152,12 +152,10 @@ namespace ASB_Notification
 
         private NotificationMessage ProcessMessage(ServiceBusReceivedMessage message)
         {
-            return new NotificationMessage()
-            {
-                Subject = message.Subject,
-                Message = Encoding.UTF8.GetString(message.Body),
-                EnqueueDateTime = message.EnqueuedTime.DateTime
-            };
+            var messageBody = Encoding.UTF8.GetString(message.Body);
+            var notificationMessage = JsonSerializer.Deserialize<NotificationMessage>(messageBody);
+            notificationMessage.EnqueueDateTime = message.EnqueuedTime.DateTime;
+            return notificationMessage;
         }
 
         private void Form1_Load(object sender, EventArgs e)
