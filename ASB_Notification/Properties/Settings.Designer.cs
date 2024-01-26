@@ -22,41 +22,5 @@ namespace ASB_Notification.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ASB_Connectionstring {
-            get {
-                return ((string)(this["ASB_Connectionstring"]));
-            }
-            set {
-                this["ASB_Connectionstring"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool DeleteMessage {
-            get {
-                return ((bool)(this["DeleteMessage"]));
-            }
-            set {
-                this["DeleteMessage"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("60000")]
-        public int TimerInterval {
-            get {
-                return ((int)(this["TimerInterval"]));
-            }
-            set {
-                this["TimerInterval"] = value;
-            }
-        }
     }
 }

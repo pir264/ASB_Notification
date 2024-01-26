@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace ASB_Notification
 {
     internal static class Program
@@ -13,8 +15,20 @@ namespace ASB_Notification
 
             ApplicationConfiguration.Initialize();
 
-            Application.Run(new Form1());
+            //To register all default providers:
+            //var host = Host.CreateDefaultBuilder(args).Build();
+            var builder = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+               .AddJsonFile("local.appsettings.json", optional: true, reloadOnChange: true)
+               .Build();
+
+
+
+
+            Application.Run(new Form1(builder));
         }
+
+
 
 
     }

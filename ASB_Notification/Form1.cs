@@ -1,4 +1,5 @@
 using Azure.Messaging.ServiceBus;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Toolkit.Uwp.Notifications;
 using System.Text;
 
@@ -9,12 +10,19 @@ namespace ASB_Notification
         bool isLoaded = false;
         string conversationId = "4613BEB0-75E5-414C-9533-1BAB2FDA90F3";
         string headerId = "6E9051FF-B7EF-477E-A25F-DEDE8C6BA409";
+        string _asbConnection = string.Empty;
+        bool _deleteMessage = false;
+        int _timerInterval = 60000;
 
-        public Form1()
+        public Form1(IConfigurationRoot builder)
         {
             InitializeComponent();
+            var settings = builder.GetSection("Configuration").Get<Settings>();
+            _asbConnection = settings.ASB_Connectionstring;
+            _deleteMessage = settings.DeleteMessage;
+
             System.Timers.Timer tmr = new System.Timers.Timer();
-            tmr.Interval = Properties.Settings.Default.TimerInterval;
+            tmr.Interval = settings.TimerInterval;
             tmr.AutoReset = true;
             tmr.Enabled = true;
             tmr.Elapsed += Tmr_Elapsed;
@@ -24,9 +32,9 @@ namespace ASB_Notification
 
         private async void Tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(Properties.Settings.Default.ASB_Connectionstring))
+            if (!String.IsNullOrEmpty(_asbConnection))
             {
-                var messages = await GetMessages(Properties.Settings.Default.ASB_Connectionstring);
+                var messages = await GetMessages(_asbConnection);
                 foreach (var message in messages)
                 {
                     new ToastContentBuilder()
@@ -45,9 +53,9 @@ namespace ASB_Notification
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.ASB_Connectionstring = ASBConnectionString.Text;
-            Properties.Settings.Default.DeleteMessage = cbDeleteMessage.Checked;
-            Properties.Settings.Default.TimerInterval = int.Parse(tbTimerInterval.Text) * 60000;
+            _asbConnection = ASBConnectionString.Text;
+            _deleteMessage = cbDeleteMessage.Checked;
+            _timerInterval = int.Parse(tbTimerInterval.Text) * 60000;
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -131,9 +139,10 @@ namespace ASB_Notification
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            ASBConnectionString.Text = Properties.Settings.Default.ASB_Connectionstring;
-            cbDeleteMessage.Checked = Properties.Settings.Default.DeleteMessage;
-            tbTimerInterval.Text = (Properties.Settings.Default.TimerInterval / 60000).ToString();
+
+            ASBConnectionString.Text = _asbConnection;
+            cbDeleteMessage.Checked = _deleteMessage;
+            tbTimerInterval.Text = (_timerInterval / 60000).ToString();
         }
 
         private void btnTestConnetion_Click(object sender, EventArgs e)
