@@ -3,6 +3,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Toolkit.Uwp.Notifications;
 using System.Text;
 
+using System.Text.Json;
+
 namespace ASB_Notification
 {
     public partial class Form1 : Form
@@ -13,28 +15,29 @@ namespace ASB_Notification
         string _asbConnection = string.Empty;
         bool _deleteMessage = false;
         int _timerInterval = 60000;
+        System.Timers.Timer tmr;
 
         public Form1(IConfigurationRoot builder)
         {
             InitializeComponent();
-            var settings = builder.GetSection("Configuration").Get<Settings>();
+            var settings = builder.Get<Settings>();
             _asbConnection = settings.ASB_Connectionstring;
             _deleteMessage = settings.DeleteMessage;
+            _timerInterval = settings.TimerInterval;
 
-            System.Timers.Timer tmr = new System.Timers.Timer();
-            tmr.Interval = settings.TimerInterval;
+            tmr = new System.Timers.Timer();
+            tmr.Interval = _timerInterval;
             tmr.AutoReset = true;
             tmr.Enabled = true;
             tmr.Elapsed += Tmr_Elapsed;
             tmr.Start();
-
         }
 
         private async void Tmr_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             if (!String.IsNullOrEmpty(_asbConnection))
             {
-                var messages = await GetMessages(_asbConnection);
+                var messages = await GetMessages(_asbConnection, _deleteMessage);
                 foreach (var message in messages)
                 {
                     new ToastContentBuilder()
@@ -56,6 +59,21 @@ namespace ASB_Notification
             _asbConnection = ASBConnectionString.Text;
             _deleteMessage = cbDeleteMessage.Checked;
             _timerInterval = int.Parse(tbTimerInterval.Text) * 60000;
+
+            var settings = new Settings
+            {
+                ASB_Connectionstring = _asbConnection,
+                DeleteMessage = _deleteMessage,
+                TimerInterval = _timerInterval,
+            };
+
+            string output = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+
+            File.WriteAllText("appsettings.json", output);
+
+            tmr.Stop();
+            tmr.Interval = _timerInterval;
+            tmr.Start();
         }
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
@@ -103,8 +121,14 @@ namespace ASB_Notification
             }
         }
 
-        private async Task<List<NotificationMessage>> GetMessages(string connectionString)
+        private async Task<List<NotificationMessage>> GetMessages(string connectionString, bool deleteMessages)
         {
+            var receiveMode = ServiceBusReceiveMode.PeekLock;
+            if (deleteMessages)
+            {
+                receiveMode = ServiceBusReceiveMode.ReceiveAndDelete;
+            }
+
             var clientOptions = new ServiceBusClientOptions
             {
                 TransportType = ServiceBusTransportType.AmqpWebSockets
@@ -113,7 +137,7 @@ namespace ASB_Notification
 
             var receiver = _client.CreateReceiver("notifications", new ServiceBusReceiverOptions
             {
-                ReceiveMode = ServiceBusReceiveMode.PeekLock
+                ReceiveMode = receiveMode
             });
 
             var messages = await receiver.ReceiveMessagesAsync(4);
@@ -133,7 +157,6 @@ namespace ASB_Notification
                 Subject = message.Subject,
                 Message = Encoding.UTF8.GetString(message.Body),
                 EnqueueDateTime = message.EnqueuedTime.DateTime
-
             };
         }
 
@@ -145,9 +168,19 @@ namespace ASB_Notification
             tbTimerInterval.Text = (_timerInterval / 60000).ToString();
         }
 
-        private void btnTestConnetion_Click(object sender, EventArgs e)
+        private async void btnTestConnetion_ClickAsync(object sender, EventArgs e)
         {
-            GetMessages(ASBConnectionString.Text);
+            try
+            {
+                var messages = await GetMessages(ASBConnectionString.Text, false);
+                MessageBox.Show($"Test gelukt! {messages.Count} messages");
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error! {ex}");
+            }
+
         }
     }
 }

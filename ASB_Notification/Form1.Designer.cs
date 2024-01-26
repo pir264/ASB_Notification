@@ -72,7 +72,7 @@
             btnTestConnetion.TabIndex = 3;
             btnTestConnetion.Text = "Test Connection";
             btnTestConnetion.UseVisualStyleBackColor = true;
-            btnTestConnetion.Click += btnTestConnetion_Click;
+            btnTestConnetion.Click += btnTestConnetion_ClickAsync;
             // 
             // cbDeleteMessage
             // 
